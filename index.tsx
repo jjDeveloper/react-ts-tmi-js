@@ -5,6 +5,7 @@ import * as TMI from 'tmi.js';
 import { ChatNav } from './components/ChatNav';
 import { ChatContent } from './components/ChatContent';
 import { MessageComponent } from './components/MessageComponent';
+import { ChatFooter } from './components/ChatFooter';
 
 interface ITwitchClient {
   channels: string[];
@@ -35,6 +36,7 @@ const App = () => {
     new TwitchClient(DEFAULT_OPTS)
   );
   const [channelInput, setChannelInput] = useState('');
+  const [twitchClientStatus, setTwitchClientStatus] = useState('CLOSED');
   useEffect(() => {
     // console.log('chatList updated');
   }, [JSON.stringify(chatList)]);
@@ -71,6 +73,7 @@ const App = () => {
       await twitchClient.chat.connect().then((c) => {
         console.log(`connected: ${c[0]} port: ${c[1]}`);
         console.log(`State: ${twitchClient.chat.readyState()}`);
+        setTwitchClientStatus(twitchClient.chat.readyState());
       });
     }
     await twitchClient.chat
@@ -95,6 +98,7 @@ const App = () => {
     await twitchClient.chat.disconnect().then((d) => {
       console.log(`disconnected: ${d[0]} port: ${d[1]}`);
       console.log(`State: ${twitchClient.chat.readyState()}`);
+      setTwitchClientStatus(twitchClient.chat.readyState());
       channelListLog();
     });
   };
@@ -103,13 +107,17 @@ const App = () => {
       <div>
         <h1>Channel List</h1>
         {props.channels.map((c) => {
-          return <p key={c}>{c}</p>;
+          return (
+            <a onClick={() => props.click(c)} key={c}>
+              <p>{c}</p>
+            </a>
+          );
         })}
       </div>
     );
   };
   return (
-    <div>
+    <div className="vh-100">
       <ChatNav>
         <div className="btn-toolbar" role="group" aria-label="...">
           <input
@@ -134,7 +142,7 @@ const App = () => {
         </div>
       </ChatNav>
       <ChatContent
-        main={<ChannelList channels={channelList} />}
+        main={<ChannelList channels={channelList} click={setChannelInput} />}
         chat={
           <div className="list-group">
             {chatList.map((c) => {
@@ -149,6 +157,7 @@ const App = () => {
           </div>
         }
       />
+      <ChatFooter status={twitchClientStatus} />
     </div>
   );
 };
